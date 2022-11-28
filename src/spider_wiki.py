@@ -61,25 +61,29 @@ class MySpider(scrapy.Spider):
     # presenti nel box laterale a destra nella pagina di dettaglio
     def title_name_companies(self, response):
         item = CustomItem()
-        item['name'] = response.xpath('//table[@class="infobox vcard"]/caption/text()').get()
-        item['type'] = self.try_all_structure(response, "Type")
-        item['industry'] = self.try_all_structure(response, "Industry")
-        item['founded'] = self.try_all_structure(response, "Founded")
-        #retrieve the Founder/Founders
-        if len(self.try_all_structure(response, "Founders")) > 0:
-            item['founders'] = self.try_all_structure(response, "Founders")
-        else:
-            item['founders'] = self.try_all_structure(response, "Founder")
-        #retrive the Headquarters
-        item['headquarters'] = self.try_all_structure(response, "Headquarters")
-        item['key_people'] = self.try_all_structure(response, "Key people")
-        item['services'] = self.try_all_structure(response, "Services")
-        item['revenue'] = self.try_all_structure(response, "Revenue")
-        item['operating_income'] = response.xpath('//table[@class="infobox vcard"]/tbody/tr/th/div/a[contains(text(), "Operating income")]/../../../td//text()').getall()
-        item['total_assets'] = response.xpath('//table[@class="infobox vcard"]/tbody/tr/th/span/a[contains(text(), "Total assets")]/../../../td//text()').getall()
-        item['number_of_employees'] = response.xpath('//table[@class="infobox vcard"]/tbody/tr/th/div[contains(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "employees")]/../../td//text()').getall()
-        item['website'] = self.try_all_structure(response, "Website")
-        return item
+        # controllo se non è una entry vuota (falsa istaza di azienda)
+        self.logger.info(response.xpath('//table[@class="infobox vcard"]/caption/text()').get())
+        if response.xpath('//table[@class="infobox vcard"]/caption/text()').get() is not None:
+            item['name'] = response.xpath('//table[@class="infobox vcard"]/caption/text()').get()
+            item['type'] = self.try_all_structure(response, "Type")
+            item['industry'] = self.try_all_structure(response, "Industry")
+            item['founded'] = self.try_all_structure(response, "Founded")
+            #retrieve the Founder/Founders
+            if len(self.try_all_structure(response, "Founders")) > 0:
+                item['founders'] = self.try_all_structure(response, "Founders")
+            else:
+                item['founders'] = self.try_all_structure(response, "Founder")
+            #retrive the Headquarters
+            item['headquarters'] = self.try_all_structure(response, "Headquarters")
+            item['key_people'] = self.try_all_structure(response, "Key people")
+            item['services'] = self.try_all_structure(response, "Services")
+            item['revenue'] = self.try_all_structure(response, "Revenue")
+            item['operating_income'] = response.xpath('//table[@class="infobox vcard"]/tbody/tr/th/div/a[contains(text(), "Operating income")]/../../../td//text()').getall()
+            item['total_assets'] = response.xpath('//table[@class="infobox vcard"]/tbody/tr/th/span/a[contains(text(), "Total assets")]/../../../td//text()').getall()
+            item['number_of_employees'] = response.xpath('//table[@class="infobox vcard"]/tbody/tr/th/div[contains(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "employees")]/../../td//text()').getall()
+            item['website'] = self.try_all_structure(response, "Website")
+            return item
+
 
 
     def try_all_structure(self, response, name):
