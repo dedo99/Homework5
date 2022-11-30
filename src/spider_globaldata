@@ -1,0 +1,79 @@
+import scrapy
+from scrapy.item import Item, Field
+
+
+prefix_url = 'https://www.globaldata.com'
+
+class CustomItem(Item):
+    name = Field()
+    headquarters = Field()
+    number_of_employees = Field()
+    address = Field()
+    industry = Field()
+    website = Field()
+    market_cap = Field()
+    telephone = Field()
+    revenue = Field()
+    deal_volume = Field()
+    filings_sentiment = Field()
+    jobs = Field()
+    patents = Field()
+    news_sentiment = Field()
+    social_media_buzz = Field()
+    number_of_deals = Field()
+    deal_value = Field()
+
+
+class MySpider(scrapy.Spider):
+    name = 'spider_wiki'
+    allowed_domains = ['www.globaldata.com']
+
+    def start_requests(self):
+        yield scrapy.Request('https://www.globaldata.com/companies/listing/search/?pageSize=2000&pageNumber=1&sortColumn=1&sortDirection=asc', self.parse1)
+        # yield scrapy.Request('https://www.globaldata.com/companies/listing/search/?pageSize=100&pageNumber=2&sortColumn=1&sortDirection=asc', self.parse2)
+        # yield scrapy.Request('https://www.globaldata.com/companies/listing/search/?pageSize=100&pageNumber=3&sortColumn=1&sortDirection=asc', self.parse2)
+        # yield scrapy.Request('https://www.globaldata.com/companies/listing/search/?pageSize=100&pageNumber=4&sortColumn=1&sortDirection=asc', self.parse2)
+        # yield scrapy.Request('https://www.globaldata.com/companies/listing/search/?pageSize=100&pageNumber=5&sortColumn=1&sortDirection=asc', self.parse2)
+
+
+
+    # parse1, parse2, parse3: sono metodi utilizzati per entrare in ulteriori pagine più specifiche attraverso
+    # i link che sono presenti rispettivamente nella prima, seconda, terza colonna della tabella
+    def parse1(self, response):
+        for href in response.xpath('//table[@id="TableView001"]/tbody/tr/td[1]/a/@href').getall():
+            self.logger.info('Path specifico: %s', href)
+            yield scrapy.Request(response.urljoin(str(href)), self.title_name_companies)
+
+
+
+
+    # features_companies: un metodo che consente di estrarre le informazioni di ogni singola azienda che sono
+    # presenti nel box laterale a destra nella pagina di dettaglio
+    def title_name_companies(self, response):
+        item = CustomItem()
+        item['name'] = response.xpath('//header/h1[@class="decor-alpha"]/text()').getall()[0].split(':')[0]
+        item['headquarters'] = self.try_all_structure_cards(response, "headquarters")
+        item['number_of_employees'] = self.try_all_structure_cards(response, "employees")
+        item['address'] = self.try_all_structure_cards(response, "address")
+        item['industry'] = self.try_all_structure_cards(response, "industry")
+        item['website'] = response.xpath('//div[@class="card metrics"]/span[@class="head"][contains(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "website")]/../span[2]/a/text()').get().replace('\n', '').replace('\r','').strip()
+        item['market_cap'] = self.try_all_structure_cards(response, "market cap")
+        item['telephone'] = self.try_all_structure_cards(response, "telephone")
+        item['revenue'] = self.try_all_structure_cards(response, "revenue")
+        ## DA CONTROLLARE ESTRAZIONE (funziona nel browser)
+        item['deal_volume'] = response.xpath('//div[@class="card metrics graph"]/span[@class="head"]/span[1][contains(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "deal volume")]/../../span[@class="metric-key"]/text()').getall()
+        item['filings_sentiment'] = self.try_all_structure_graphs(response, "filings sentiment")
+        item['jobs'] = self.try_all_structure_graphs(response, "jobs")
+        item['news_sentiment'] = self.try_all_structure_graphs(response, "news sentiment")
+        item['social_media_buzz'] = self.try_all_structure_graphs(response, "social media")
+        return item
+
+
+    def try_all_structure_cards(self, response, name):
+        return response.xpath('//div[@class="card metrics"]/span[@class="head"][contains(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "' + name + '")]/../span[2]/text()').get()
+    def try_all_structure_graphs(self, response, name):
+        #print('//div[@class="card metrics graph"]/span[@class="head"]/span[1][contains(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "' + name + '")]/../../span[@class="metric-key"]/text()')
+        result = response.xpath('//div[@class="card metrics graph"]/span[@class="head"]/span[1][contains(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "' + name + '")]/../../span[@class="metric-key"]/text()')
+        #print(result)
+        return result
+    top_competitors = Field()
