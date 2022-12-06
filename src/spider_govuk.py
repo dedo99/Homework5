@@ -1,3 +1,5 @@
+import time
+
 import scrapy
 from scrapy.item import Item, Field
 
@@ -11,6 +13,7 @@ class CustomItem(Item):
     company_type = Field()
     company_creation_date = Field()
     nature_of_business = Field()
+    time = Field()
 
 
 class MySpider(scrapy.Spider):
@@ -18,8 +21,8 @@ class MySpider(scrapy.Spider):
     allowed_domains = ['find-and-update.company-information.service.gov.uk']
 
     def start_requests(self):
-        # yield scrapy.Request('https://find-and-update.company-information.service.gov.uk/search/companies?q=software', self.parse)
-        # yield scrapy.Request('https://find-and-update.company-information.service.gov.uk/search/companies?q=food', self.parse)
+        yield scrapy.Request('https://find-and-update.company-information.service.gov.uk/search/companies?q=software', self.parse)
+        yield scrapy.Request('https://find-and-update.company-information.service.gov.uk/search/companies?q=food', self.parse)
         yield scrapy.Request('https://find-and-update.company-information.service.gov.uk/search/companies?q=all', self.parse)
 
 
@@ -34,6 +37,7 @@ class MySpider(scrapy.Spider):
 
 
     def information_companies(self, response):
+        start_time = time.time()
         item = CustomItem()
         item['name'] = self.split_and_replace(response.xpath('//*[@id="content-container"]/div[1]/p[1]/text()').get())
         item['company_number'] = self.split_and_replace(response.xpath('//*[@id="company-number"]/strong/text()').get())
@@ -42,6 +46,8 @@ class MySpider(scrapy.Spider):
         item['company_type'] = self.split_and_replace(response.xpath('//*[@id="company-type"]/text()').get())
         item['company_creation_date'] = self.split_and_replace(response.xpath('//*[@id="company-creation-date"]/text()').get())
         item['nature_of_business'] = self.split_and_replace(response.xpath('//*[@id="sic0"]/text()').get())
+        end_time = time.time()
+        item['time'] = end_time - start_time
         return item
 
 

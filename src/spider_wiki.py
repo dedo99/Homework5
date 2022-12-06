@@ -1,3 +1,4 @@
+import time
 import scrapy
 from scrapy.item import Item, Field
 
@@ -18,6 +19,7 @@ class CustomItem(Item):
     total_assets = Field()
     number_of_employees = Field()
     website = Field()
+    time = Field()
 
 
 class MySpider(scrapy.Spider):
@@ -35,6 +37,8 @@ class MySpider(scrapy.Spider):
         yield scrapy.Request(prefix_url + '/wiki/List_of_film_production_companies', self.parse1)
         yield scrapy.Request(prefix_url + '/wiki/List_of_IT_consulting_firms', self.parse1)
         yield scrapy.Request(prefix_url + '/wiki/List_of_oil_exploration_and_production_companies', self.parse1)
+        yield scrapy.Request(prefix_url + '/wiki/List_of_largest_corporate_profits_and_losses', self.parse2)
+        yield scrapy.Request(prefix_url + '/wiki/List_of_largest_retail_companies', self.parse2)
 
 
 
@@ -60,6 +64,7 @@ class MySpider(scrapy.Spider):
     # features_companies: un metodo che consente di estrarre le informazioni di ogni singola azienda che sono
     # presenti nel box laterale a destra nella pagina di dettaglio
     def title_name_companies(self, response):
+        start_time = time.time()
         item = CustomItem()
         # controllo se non è una entry vuota (falsa istaza di azienda)
         self.logger.info(response.xpath('//table[@class="infobox vcard"]/caption/text()').get())
@@ -82,6 +87,8 @@ class MySpider(scrapy.Spider):
             item['total_assets'] = response.xpath('//table[@class="infobox vcard"]/tbody/tr/th/span/a[contains(text(), "Total assets")]/../../../td//text()').getall()
             item['number_of_employees'] = response.xpath('//table[@class="infobox vcard"]/tbody/tr/th/div[contains(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "employees")]/../../td//text()').getall()
             item['website'] = self.try_all_structure(response, "Website")
+            end_time = time.time()
+            item['time'] = end_time - start_time
             return item
 
 
