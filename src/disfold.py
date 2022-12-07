@@ -14,33 +14,34 @@ class CustomItem(Item):
     founded = Field()
     employees = Field()
     ceo = Field()
-    time_init = Field()
-    time_finish = Field()
-    time_search = Field()
+    #time_init = Field()
+    #time_finish = Field()
+    #time_search = Field()
     #description = Field() 
 
 
 class DisfoldSpider(scrapy.Spider):
    name = 'disfold'
    allowed_domains = ['disfold.com']
-   start_urls = ['https://disfold.com/world/companies/?page=20']
-   next_page = ""
+   start_urls = ['https://disfold.com/world/companies/']
+   next_page = "?page=1"
 
    def parse(self, response):
-      if (self.next_page.find('?page=4') == -1):
-         self.next_page = response.xpath("/html/body/div[2]/div[2]/div[2]/div/div/div/div/ul/li[last()-1]/a/@href").get()
-         print(self.next_page)
-         self.logger.info(self.next_page)
+      i = 1 
+      while(i!= 21):
+         url = self.start_urls[0] +"?page="+ str(i)
+         #self.next_page = response.xpath("//div[@class='pagination']/ul/..//li[last()-1]/a/@href").get()
+         #self.logger.info(self.current)
+         #self.logger.info(self.next_page)
          #if self.next_page is not None:
-         yield response.follow(self.next_page, callback = self.f)
-      else:
-         self.logger.info("------USCITA------")
-         return
-              
-   def f(self, response):
+         yield response.follow(url, callback = self.f)
+         i = i+1
+
+
+   def f(self,response):
       for row in response.xpath('//descendant-or-self::table/tbody/tr'): 
          item = CustomItem()
-         item["time_init"] = time.time()
+         #item["time_init"] = time.time()
          item["name"] = self.auxiliary('name',row) 
          item["market_cap"] = self.auxiliary('market_cap',row)                                
          item["stock"] = self.auxiliary('stock',row)                                          
@@ -50,8 +51,12 @@ class DisfoldSpider(scrapy.Spider):
             
          href = row.xpath("td[2]/a/@href").get()
          yield scrapy.Request(response.urljoin(href), self.parse2, cb_kwargs=dict(item = item))
-        
 
+
+   
+
+   
+         
    def parse2(self, response, item):
       item['headquarters'] = ""
       item['founded'] = ""
@@ -105,8 +110,8 @@ class DisfoldSpider(scrapy.Spider):
             item['ceo'] = elem.get().replace("CEO:", "").replace("\n", "")
       
 
-      item["time_finish"] = time.time()
-      item["time_search"] = item["time_finish"]-item["time_init"]
+      #item["time_finish"] = time.time()
+      #item["time_search"] = item["time_finish"]-item["time_init"]
 
       return item
 
