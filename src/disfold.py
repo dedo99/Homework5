@@ -14,9 +14,9 @@ class CustomItem(Item):
     founded = Field()
     employees = Field()
     ceo = Field()
-    #time_init = Field()
-    #time_finish = Field()
-    #time_search = Field()
+    time_init = Field()
+    time_finish = Field()
+    time_search = Field()
     #description = Field() 
 
 
@@ -41,13 +41,14 @@ class DisfoldSpider(scrapy.Spider):
    def f(self,response):
       for row in response.xpath('//descendant-or-self::table/tbody/tr'): 
          item = CustomItem()
-         #item["time_init"] = time.time()
+         item["time_init"] = time.time()
          item["name"] = self.auxiliary('name',row) 
          item["market_cap"] = self.auxiliary('market_cap',row)                                
          item["stock"] = self.auxiliary('stock',row)                                          
          item["country"] = self.auxiliary('country',row)                                       
          item["sector"] =  self.auxiliary('sector',row)                                        
-         item["industry"] = self.auxiliary('industry',row)                                     
+         item["industry"] = self.auxiliary('industry',row)
+         item["time_search"] = time.time()- item["time_init"]                                     
             
          href = row.xpath("td[2]/a/@href").get()
          yield scrapy.Request(response.urljoin(href), self.parse2, cb_kwargs=dict(item = item))
@@ -62,56 +63,72 @@ class DisfoldSpider(scrapy.Spider):
       item['founded'] = ""
       item['employees'] = ""
       item['ceo'] = ""
+      time_init2 = time.time()
       
-      elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[3]/text()")
-      if (elem != []):
-         if(elem.get().find("Headquarters") == 0):
-            item['headquarters'] = elem.get().replace(" ","").replace("Headquarters:", "").replace("\n", "")
-         elif(elem.get().find("Founded") == 0):
-            item['founded'] = elem.get().replace("Founded:", "").replace("\n", "").strip()
-         elif(elem.get().find("Employees") == 0):
-            item['employees'] = elem.get().replace("Employees:", "").replace("\n", "").strip()
-         elif(elem.get().find("CEO") == 0):
-            item['ceo'] = elem.get().replace("CEO:", "").replace("\n", "").strip()
+      
+      if (response.xpath("//*[@class = 'card-content cyan darken-4']/p[2]/text()") != []):
+         elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[2]/text()").get()
+         if(elem.find("Headquarters") != -1):
+            item['headquarters'] = elem.replace(" ","").replace("Headquarters:", "").replace("\n", "")
+         elif(elem.find("Founded") != -1):
+            item['founded'] = elem.replace("Founded:", "").replace("\n", "")
+         elif(elem.find("Employees") != -1):
+            item['employees'] = elem.replace("Employees:", "").replace("\n", "")
+         elif(elem.find("CEO") != -1):
+            item['ceo'] = elem.replace("CEO:", "").replace("\n", "")
 
-      elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[4]/text()")
-      if (elem != []):
-         if(elem.get().find("Headquarters") == 0):
-            item['headquarters'] = elem.get().replace(" ","").replace("Headquarters:", "").replace("\n", "").strip()
-         elif(elem.get().find("Founded") == 0):
-            item['founded'] = elem.get().replace("Founded:", "").replace("\n", "").strip()
-         elif(elem.get().find("Employees") == 0):
-            item['employees'] = elem.get().replace("Employees:", "").replace("\n", "").strip()
-         elif(elem.get().find("CEO") == 0):
-            item['ceo'] = elem.get().replace("CEO:", "").replace("\n", "").strip()
+      if (response.xpath("//*[@class = 'card-content cyan darken-4']/p[3]/text()") != []):
+         elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[3]/text()").get()
+         if(elem.find("Headquarters") != -1):
+            item['headquarters'] = elem.replace(" ","").replace("Headquarters:", "").replace("\n", "")
+         elif(elem.find("Founded") != -1):
+            item['founded'] = elem.replace("Founded:", "").replace("\n", "")
+         elif(elem.find("Employees") != -1):
+            item['employees'] = elem.replace("Employees:", "").replace("\n", "")
+         elif(elem.find("CEO") != -1):
+            item['ceo'] = elem.replace("CEO:", "").replace("\n", "")
+
+    
+      if (response.xpath("//*[@class = 'card-content cyan darken-4']/p[4]/text()") != []):
+         elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[4]/text()").get()
+         if(elem.find("Headquarters") != -1):
+            item['headquarters'] = elem.replace(" ","").replace("Headquarters:", "").replace("\n", "")
+         elif(elem.find("Founded") != -1):
+            item['founded'] = elem.replace("Founded:", "").replace("\n", "")
+         elif(elem.find("Employees") != -1):
+            item['employees'] = elem.replace("Employees:", "").replace("\n", "")
+         elif(elem.find("CEO") != -1):
+            item['ceo'] = elem.replace("CEO:", "").replace("\n", "")
             
       
-      elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[5]/text()")
-      if (elem != []):
-         if(elem.get().find("Headquarters") == 0):
-            item['headquarters'] = elem.get().replace(" ","").replace("Headquarters:", "").replace("\n", "").strip()
-         elif(elem.get().find("Founded") == 0):
-            item['founded'] = elem.get().replace("Founded:", "").replace("\n", "").strip()
-         elif(elem.get().find("Employees") == 0):
-            item['employees'] = elem.get().replace("Employees:", "").replace("\n", "").strip()
-         elif(elem.get().find("CEO") == 0):
-            item['ceo'] = elem.get().replace("CEO:", "").replace("\n", "").strip()
+     
+      if (response.xpath("//*[@class = 'card-content cyan darken-4']/p[5]/text()") != []):
+         elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[5]/text()").get()
+         if(elem.find("Headquarters") != -1):
+            item['headquarters'] = elem.replace(" ","").replace("Headquarters:", "").replace("\n", "")
+         elif(elem.find("Founded") != -1):
+            item['founded'] = elem.replace("Founded:", "").replace("\n", "")
+         elif(elem.find("Employees") != -1):
+            item['employees'] = elem.replace("Employees:", "").replace("\n", "")
+         elif(elem.find("CEO") != -1):
+            item['ceo'] = elem.replace("CEO:", "").replace("\n", "")
       
 
-      elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[6]/text()")
-      if (elem != []):
-         if(elem.get().find("Headquarters") == 0):
-            item['headquarters'] = elem.get().replace(" ","").replace("Headquarters:", "").replace("\n", "")
-         elif(elem.get().find("Founded") == 0):
-            item['founded'] = elem.get().replace("Founded:", "").replace("\n", "")
-         elif(elem.get().find("Employees") == 0):
-            item['employees'] = elem.get().replace("Employees:", "").replace("\n", "")
-         elif(elem.get().find("CEO") == 0):
-            item['ceo'] = elem.get().replace("CEO:", "").replace("\n", "")
+      
+      if (response.xpath("//*[@class = 'card-content cyan darken-4']/p[6]/text()") != []):
+         elem = response.xpath("//*[@class = 'card-content cyan darken-4']/p[6]/text()").get()
+         if(elem.find("Headquarters") != -1):
+            item['headquarters'] = elem.replace(" ","").replace("Headquarters:", "")
+         elif(elem.find("Founded") != -1):
+            item['founded'] = elem.replace("Founded:", "").replace("\n", "")
+         elif(elem.find("Employees") != -1):
+            item['employees'] = elem.replace("Employees:", "").replace("\n", "")
+         elif(elem.find("CEO") != -1):
+            item['ceo'] = elem.replace("CEO:", "").replace("\n", "")
       
 
-      #item["time_finish"] = time.time()
-      #item["time_search"] = item["time_finish"]-item["time_init"]
+      item["time_finish"] = time.time()
+      item["time_search"] = item["time_search"]+ time.time()-time_init2 
 
       return item
 
